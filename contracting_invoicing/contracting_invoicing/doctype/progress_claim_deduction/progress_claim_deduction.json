@@ -1,0 +1,11 @@
+{
+ "doctype": "DocType", "name": "Progress Claim Deduction", "module": "Contracting Invoicing",
+ "istable": 1, "editable_grid": 1, "engine": "InnoDB",
+ "fields": [
+  {"fieldname": "deduction_type", "fieldtype": "Link", "label": "Deduction Type", "options": "Deduction Type", "reqd": 1, "in_list_view": 1},
+  {"fieldname": "treatment", "fieldtype": "Data", "label": "Treatment", "fetch_from": "deduction_type.treatment", "read_only": 1, "in_list_view": 1},
+  {"fieldname": "amount", "fieldtype": "Currency", "label": "Amount", "reqd": 1, "in_list_view": 1,
+   "description": "Positive amount to deduct. How it posts depends on the Deduction Type's treatment."},
+  {"fieldname": "remarks", "fieldtype": "Small Text", "label": "Remarks", "in_list_view": 1}
+ ], "permissions": []
+}

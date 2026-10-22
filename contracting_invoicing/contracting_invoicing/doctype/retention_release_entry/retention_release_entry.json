@@ -1,0 +1,15 @@
+{
+ "doctype": "DocType", "name": "Retention Release Entry", "module": "Contracting Invoicing",
+ "istable": 1, "editable_grid": 1, "engine": "InnoDB",
+ "fields": [
+  {"fieldname": "sales_invoice", "fieldtype": "Link", "label": "Sales Invoice", "options": "Sales Invoice", "reqd": 1, "in_list_view": 1, "read_only": 1},
+  {"fieldname": "retention_je", "fieldtype": "Link", "label": "Retention JE", "options": "Journal Entry", "in_list_view": 1, "read_only": 1,
+   "description": "The original Retention JE on that invoice. Reversed by this release."},
+  {"fieldname": "retained_amount", "fieldtype": "Currency", "label": "Retained", "read_only": 1, "in_list_view": 1,
+   "description": "Retention originally withheld on this invoice."},
+  {"fieldname": "amount", "fieldtype": "Currency", "label": "Release Amount", "reqd": 1, "in_list_view": 1, "non_negative": 1,
+   "description": "Portion of this invoice's retention being released now. Cannot exceed Retained minus already-released."},
+  {"fieldname": "balance", "fieldtype": "Currency", "label": "Balance", "read_only": 1, "in_list_view": 1,
+   "description": "Remaining retention on this invoice after this release."}
+ ], "permissions": []
+}

@@ -1,0 +1,32 @@
+{
+ "doctype": "DocType", "name": "Retention Release", "module": "Contracting Invoicing",
+ "engine": "InnoDB", "is_submittable": 1,
+ "naming_rule": "Expression", "autoname": "format:RR-{YYYY}-{####}",
+ "title_field": "title",
+ "fields": [
+  {"fieldname": "title", "fieldtype": "Data", "label": "Title", "read_only": 1, "no_copy": 1},
+  {"fieldname": "contract", "fieldtype": "Link", "label": "Contract", "options": "Contracting Contract", "reqd": 1, "in_list_view": 1, "in_standard_filter": 1, "search_index": 1,
+   "description": "The contract whose retention is being released."},
+  {"fieldname": "customer", "fieldtype": "Link", "label": "Customer", "options": "Customer", "fetch_from": "contract.customer", "read_only": 1, "in_list_view": 1},
+  {"fieldname": "company", "fieldtype": "Link", "label": "Company", "options": "Company", "fetch_from": "contract.company", "read_only": 1, "in_standard_filter": 1},
+  {"fieldname": "cb0", "fieldtype": "Column Break"},
+  {"fieldname": "posting_date", "fieldtype": "Date", "label": "Posting Date", "reqd": 1, "default": "Today",
+   "description": "Posting date of the reversal Journal Entries."},
+  {"fieldname": "sec_entries", "fieldtype": "Section Break", "label": "Invoices Being Released"},
+  {"fieldname": "entries", "fieldtype": "Table", "label": "Entries", "options": "Retention Release Entry", "reqd": 1,
+   "description": "One row per Sales Invoice whose retention is being released. Use 'Get Unreleased Retention' to populate."},
+  {"fieldname": "sec_totals", "fieldtype": "Section Break", "label": "Totals"},
+  {"fieldname": "total_release", "fieldtype": "Currency", "label": "Total Release", "read_only": 1, "no_copy": 1, "in_list_view": 1},
+  {"fieldname": "retention_balance_before", "fieldtype": "Currency", "label": "Retention Balance (Before)", "read_only": 1, "no_copy": 1},
+  {"fieldname": "cb1", "fieldtype": "Column Break"},
+  {"fieldname": "retention_balance_after", "fieldtype": "Currency", "label": "Retention Balance (After)", "read_only": 1, "no_copy": 1,
+   "description": "Retention still held after this release. Computed on submit."},
+  {"fieldname": "remarks", "fieldtype": "Small Text", "label": "Remarks"}
+ ],
+ "permissions": [
+  {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1, "submit": 1, "cancel": 1, "amend": 1},
+  {"role": "Contracting Manager", "read": 1, "write": 1, "create": 1, "submit": 1, "cancel": 1, "amend": 1},
+  {"role": "Accounts Manager", "read": 1},
+  {"role": "Accounts User", "read": 1}
+ ]
+}

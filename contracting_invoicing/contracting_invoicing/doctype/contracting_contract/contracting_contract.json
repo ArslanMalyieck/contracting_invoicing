@@ -1,0 +1,265 @@
+{
+ "doctype": "DocType",
+ "name": "Contracting Contract",
+ "module": "Contracting Invoicing",
+ "engine": "InnoDB",
+ "naming_rule": "Expression",
+ "autoname": "format:CC-{YYYY}-{####}",
+ "title_field": "contract_title",
+ "fields": [
+  {
+   "fieldname": "contract_title",
+   "fieldtype": "Data",
+   "label": "Contract Title",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "cb0",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "label": "Project",
+   "options": "Project"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Draft\nActive\nDefect Liability\nClosed",
+   "default": "Draft",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "description": "Only Active contracts accept advances and Progress Claims. Move to Defect Liability after final handover; retention releases remain possible until Closed."
+  },
+  {
+   "fieldname": "contract_value",
+   "fieldtype": "Currency",
+   "label": "Contract Value",
+   "reqd": 1,
+   "description": "Total contract value excluding VAT. Used for the retention cap and advance percentage checks."
+  },
+  {
+   "fieldname": "sec_advance",
+   "fieldtype": "Section Break",
+   "label": "Advance Payment"
+  },
+  {
+   "fieldname": "advance_percent",
+   "fieldtype": "Percent",
+   "label": "Advance %",
+   "description": "Mobilization advance as % of contract value. A warning is raised if recorded advances exceed this."
+  },
+  {
+   "fieldname": "recovery_percent",
+   "fieldtype": "Percent",
+   "label": "Recovery % per Claim",
+   "description": "Portion of each claim used to pay back the advance. Example: 10% means every certificate repays 10% of its value until the advance is fully recovered. The app stops automatically at the remaining balance."
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "advance_received_net",
+   "fieldtype": "Currency",
+   "label": "Advance Received (Net)",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "advance_recovered_gross",
+   "fieldtype": "Currency",
+   "label": "Advance Recovered (Gross)",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "advance_balance_gross",
+   "fieldtype": "Currency",
+   "label": "Advance Balance (Gross)",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "sec_advance_payment",
+   "fieldtype": "Section Break",
+   "label": "Advance Payment (auto Payment Entry)"
+  },
+  {
+   "fieldname": "advance_mode_of_payment",
+   "fieldtype": "Link",
+   "label": "Advance Mode of Payment",
+   "options": "Mode of Payment"
+  },
+  {
+   "fieldname": "advance_taxes_template",
+   "fieldtype": "Link",
+   "label": "Advance Taxes Template (VAT)",
+   "options": "Sales Taxes and Charges Template"
+  },
+  {
+   "fieldname": "cb_adv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "advance_amount_gross",
+   "fieldtype": "Currency",
+   "label": "Advance Amount - blank = auto",
+   "description": "Net basis: yeh NET amount hai aur VAT upar se add hoti hai (e.g. 464,681.80 -> VAT 69,702.27 -> total 534,384.07). Gross basis: yeh VAT-inclusive total hai. Blank = Advance % entitlement se auto."
+  },
+  {
+   "fieldname": "advance_amount_basis",
+   "fieldtype": "Select",
+   "label": "Advance Amount Basis",
+   "options": "Net (VAT added on top)\nGross (VAT inclusive)",
+   "default": "Net (VAT added on top)",
+   "description": "Net = Advance % of Contract Value is a net entitlement and VAT is added on top. Gross = the same figure is a VAT-inclusive ceiling from which the net taxable amount is derived. Either way the ZATCA prepayment tax row stays Actual + Deduct (VAT charged on the net)."
+  },
+  {
+   "fieldname": "advance_posting_date",
+   "fieldtype": "Date",
+   "label": "Advance Posting Date",
+   "default": "Today"
+  },
+  {
+   "fieldname": "cb_adv2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "advance_reference_no",
+   "fieldtype": "Data",
+   "label": "Advance Reference No"
+  },
+  {
+   "fieldname": "advance_reference_date",
+   "fieldtype": "Date",
+   "label": "Advance Reference Date"
+  },
+  {
+   "fieldname": "advances",
+   "fieldtype": "Table",
+   "label": "Advances",
+   "options": "Contract Advance",
+   "read_only": 1,
+   "no_copy": 1,
+   "description": "System-managed. Rows appear when advance Payment Entries linked to this contract are submitted."
+  },
+  {
+   "fieldname": "sec_retention",
+   "fieldtype": "Section Break",
+   "label": "Retention"
+  },
+  {
+   "fieldname": "retention_percent",
+   "fieldtype": "Percent",
+   "label": "Retention %",
+   "description": "Withheld by the client from each certificate. VAT is still charged on the full certified value per the ZATCA contracting guideline; retention only affects what is collected now."
+  },
+  {
+   "fieldname": "retention_cap_percent",
+   "fieldtype": "Percent",
+   "label": "Retention Cap % of Contract Value",
+   "description": "Maximum total retention as % of contract value (many Saudi contracts cap at 5%). The app stops withholding once the cap is reached. 0 = no cap."
+  },
+  {
+   "fieldname": "defect_liability_months",
+   "fieldtype": "Int",
+   "label": "Defect Liability Period (Months)",
+   "description": "Used to compute the expected retention release date shown in the Retention Ledger report."
+  },
+  {
+   "fieldname": "cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "retention_invoicing_model",
+   "fieldtype": "Select",
+   "label": "Retention Model",
+   "options": "Invoiced (withheld from payment)",
+   "default": "Invoiced (withheld from payment)",
+   "read_only": 1,
+   "description": "Retention is part of the invoiced amount (VAT charged in full) and withheld from payment. The alternative model - invoicing retention separately at release - is planned for a later version."
+  },
+  {
+   "fieldname": "retention_held",
+   "fieldtype": "Currency",
+   "label": "Retention Held",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "retention_released",
+   "fieldtype": "Currency",
+   "label": "Retention Released",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "retention_balance",
+   "fieldtype": "Currency",
+   "label": "Retention Balance",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "sec_progress",
+   "fieldtype": "Section Break",
+   "label": "Progress"
+  },
+  {
+   "fieldname": "certified_to_date",
+   "fieldtype": "Currency",
+   "label": "Certified To Date (Net)",
+   "read_only": 1,
+   "no_copy": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Contracting Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1
+  },
+  {
+   "role": "Contracting User",
+   "read": 1
+  },
+  {
+   "role": "Accounts Manager",
+   "read": 1
+  },
+  {
+   "role": "Accounts User",
+   "read": 1
+  }
+ ]
+}

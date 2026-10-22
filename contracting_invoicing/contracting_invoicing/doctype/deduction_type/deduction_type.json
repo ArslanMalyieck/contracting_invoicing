@@ -1,0 +1,31 @@
+{
+ "doctype": "DocType",
+ "name": "Deduction Type",
+ "module": "Contracting Invoicing",
+ "engine": "InnoDB",
+ "naming_rule": "Set by user",
+ "autoname": "prompt",
+ "fields": [
+  {"fieldname": "treatment", "fieldtype": "Select", "label": "Treatment", "reqd": 1, "in_list_view": 1,
+   "options": "Contract Value Adjustment\nPayment-side Deduction\nBack-charge",
+   "description": "Contract Value Adjustment issues a ZATCA credit note (reduces VAT). Payment-side Deduction only reduces the receivable (no VAT effect). Choose per the ZATCA contracting guideline - this cannot be changed per-claim."},
+  {"fieldname": "default_account", "fieldtype": "Link", "label": "Default Account", "options": "Account", "in_list_view": 1,
+   "depends_on": "eval:doc.treatment=='Payment-side Deduction'",
+   "mandatory_depends_on": "eval:doc.treatment=='Payment-side Deduction'",
+   "description": "Expense account debited when this deduction is applied. Leave empty to use the company default from Contracting Settings."},
+  {"fieldname": "reverses_retention", "fieldtype": "Check", "label": "Reverses Retention Proportionally", "default": "0",
+   "depends_on": "eval:doc.treatment=='Contract Value Adjustment'",
+   "description": "If checked, the auto credit note also reverses retention on the credited amount. Usually OFF for damages (damages do not reduce works executed, so retention already withheld stays withheld)."},
+  {"fieldname": "sec_desc", "fieldtype": "Section Break", "label": "Printed Descriptions"},
+  {"fieldname": "description_en", "fieldtype": "Small Text", "label": "Description (English)",
+   "description": "Shown on the invoice print format next to this deduction."},
+  {"fieldname": "cb_desc", "fieldtype": "Column Break"},
+  {"fieldname": "description_ar", "fieldtype": "Small Text", "label": "Description (Arabic)"}
+ ],
+ "permissions": [
+  {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
+  {"role": "Contracting Manager", "read": 1, "write": 1, "create": 1},
+  {"role": "Contracting User", "read": 1},
+  {"role": "Accounts Manager", "read": 1}
+ ]
+}

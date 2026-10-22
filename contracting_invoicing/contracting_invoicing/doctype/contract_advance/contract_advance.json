@@ -1,0 +1,20 @@
+{
+ "doctype": "DocType",
+ "name": "Contract Advance",
+ "module": "Contracting Invoicing",
+ "istable": 1,
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "fields": [
+  {"fieldname": "payment_entry", "fieldtype": "Link", "label": "Payment Entry", "options": "Payment Entry", "reqd": 1, "read_only": 1, "in_list_view": 1},
+  {"fieldname": "posting_date", "fieldtype": "Date", "label": "Date", "read_only": 1, "in_list_view": 1},
+  {"fieldname": "net_amount", "fieldtype": "Currency", "label": "Advance (Net)", "read_only": 1, "in_list_view": 1,
+   "description": "Advance amount excluding VAT, as received on the Payment Entry."},
+  {"fieldname": "tax_amount", "fieldtype": "Currency", "label": "VAT", "read_only": 1, "in_list_view": 1},
+  {"fieldname": "gross_amount", "fieldtype": "Currency", "label": "Advance (Gross)", "read_only": 1, "in_list_view": 1},
+  {"fieldname": "recovered_gross", "fieldtype": "Currency", "label": "Recovered (Gross)", "read_only": 1, "in_list_view": 1,
+   "description": "Total recovered against this advance across all progress invoices, VAT-inclusive."},
+  {"fieldname": "balance_gross", "fieldtype": "Currency", "label": "Balance (Gross)", "read_only": 1, "in_list_view": 1}
+ ],
+ "permissions": []
+}

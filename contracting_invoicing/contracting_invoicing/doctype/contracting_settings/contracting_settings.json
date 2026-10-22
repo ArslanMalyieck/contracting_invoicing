@@ -1,0 +1,165 @@
+{
+ "doctype": "DocType",
+ "name": "Contracting Settings",
+ "module": "Contracting Invoicing",
+ "engine": "InnoDB",
+ "naming_rule": "By fieldname",
+ "autoname": "field:company",
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "sec_basis",
+   "fieldtype": "Section Break",
+   "label": "Calculation Basis"
+  },
+  {
+   "fieldname": "retention_basis",
+   "fieldtype": "Select",
+   "label": "Retention Basis",
+   "options": "Net Total\nGrand Total",
+   "default": "Net Total",
+   "reqd": 1,
+   "description": "Retention is calculated as a % of this figure on each invoice. Net Total = before VAT. Grand Total = including VAT. Locked once claims exist."
+  },
+  {
+   "fieldname": "advance_recovery_basis",
+   "fieldtype": "Select",
+   "label": "Advance Recovery Basis",
+   "options": "Net Total\nGrand Total",
+   "default": "Net Total",
+   "reqd": 1,
+   "description": "Advance recovery per claim is a % of this figure. Locked once claims exist."
+  },
+  {
+   "fieldname": "cb_basis",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "advance_recovery_order",
+   "fieldtype": "Select",
+   "label": "Advance Recovery Order",
+   "options": "FIFO\nPro-rata",
+   "default": "FIFO",
+   "reqd": 1,
+   "description": "With multiple advances on one contract: FIFO recovers the oldest advance first; Pro-rata spreads recovery across all open advances."
+  },
+  {
+   "fieldname": "sec_accounts",
+   "fieldtype": "Section Break",
+   "label": "Accounts"
+  },
+  {
+   "fieldname": "retention_receivable_account",
+   "fieldtype": "Link",
+   "label": "Retention Receivable Account",
+   "options": "Account",
+   "reqd": 1,
+   "description": "Retention is moved from Debtors into this account when each invoice is submitted, so AR aging shows only what the client will actually pay now. Must be a Receivable-type account."
+  },
+  {
+   "fieldname": "cb_accounts",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "deduction_expense_account",
+   "fieldtype": "Link",
+   "label": "Default Deduction Expense Account",
+   "options": "Account",
+   "reqd": 1,
+   "description": "Fallback expense account for payment-side deductions when the Deduction Type has no account of its own."
+  },
+  {
+   "fieldname": "output_vat_account",
+   "fieldtype": "Link",
+   "label": "Output VAT Account",
+   "options": "Account",
+   "reqd": 1,
+   "description": "The real VAT output (payable) account. Credited by the auto Journal Entry when an advance is received, so VAT on advances is declared correctly per KSA rules (VAT is due when the advance is received)."
+  },
+  {
+   "fieldname": "advance_vat_clearing_account",
+   "fieldtype": "Link",
+   "label": "VAT on Advances (Clearing) Account",
+   "options": "Account",
+   "reqd": 1,
+   "description": "Absorbs the prepayment Payment Entry's tax deduction and amortizes to zero as the advance is recovered on progress invoices. Keeps the ZATCA XML flow intact while the real Output VAT account stays correct."
+  },
+  {
+   "fieldname": "advance_liability_account",
+   "fieldtype": "Link",
+   "label": "Customer Advances (Liability) Account",
+   "options": "Account",
+   "description": "Balance-sheet account holding the advance net of VAT. The advance is reclassed here from Debtors on receipt; progress invoices clear it through an allowance, so revenue stays at the certified value and VAT is charged net of the recovery."
+  },
+  {
+   "fieldname": "damages_adjustment_item",
+   "fieldtype": "Link",
+   "label": "Damages Adjustment Item",
+   "options": "Item",
+   "description": "Service item used on auto-generated credit notes for deductions of type Contract Value Adjustment (e.g. liquidated damages adjusted from the contract)."
+  },
+  {
+   "fieldname": "sec_behavior",
+   "fieldtype": "Section Break",
+   "label": "Behavior"
+  },
+  {
+   "fieldname": "auto_submit_generated_invoice",
+   "fieldtype": "Check",
+   "label": "Auto Submit Generated Invoice",
+   "default": "0",
+   "description": "Off (recommended): claims create a Draft invoice for your accountant to review; ZATCA submission happens when they submit it. On: invoice submits and goes to ZATCA immediately."
+  },
+  {
+   "fieldname": "retention_posting",
+   "fieldtype": "Select",
+   "label": "Retention Posting",
+   "options": "On Invoice Submit\nOn Payment",
+   "default": "On Invoice Submit",
+   "reqd": 1,
+   "description": "When the retention Journal Entry posts. On Invoice Submit (recommended) moves retention out of Debtors immediately. On Payment is planned for a later release."
+  },
+  {
+   "fieldname": "cb_behavior",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "advance_deadline_alert",
+   "fieldtype": "Check",
+   "label": "Advance Invoice Deadline Alerts",
+   "default": "1",
+   "description": "ZATCA requires the advance (prepayment) invoice within 15 days after the end of the month the advance was received. Sends warnings to Contracting Managers at day 8 and day 13 after month end."
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  },
+  {
+   "role": "Contracting Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1
+  },
+  {
+   "role": "Contracting User",
+   "read": 1
+  },
+  {
+   "role": "Accounts Manager",
+   "read": 1
+  }
+ ]
+}
