@@ -171,9 +171,26 @@
    "label": "Retention"
   },
   {
+   "fieldname": "retention_mode",
+   "fieldtype": "Select",
+   "label": "Retention Input",
+   "options": "Percentage\nAmount",
+   "default": "Percentage",
+   "description": "Percentage: enter Retention % directly. Amount: enter the retention amount; the % is derived from Contract Value."
+  },
+  {
+   "fieldname": "retention_amount",
+   "fieldtype": "Currency",
+   "label": "Retention Amount (Total)",
+   "depends_on": "eval:doc.retention_mode=='Amount'",
+   "mandatory_depends_on": "eval:doc.retention_mode=='Amount'",
+   "description": "TOTAL retention for the whole contract (not the current certificate). Retention % is derived as Amount / Contract Value and applied to every certificate, so a contract whose total works equal the contract value withholds exactly this amount."
+  },
+  {
    "fieldname": "retention_percent",
    "fieldtype": "Percent",
    "label": "Retention %",
+   "read_only_depends_on": "eval:doc.retention_mode=='Amount'",
    "description": "Withheld by the client from each certificate. VAT is still charged on the full certified value per the ZATCA contracting guideline; retention only affects what is collected now."
   },
   {

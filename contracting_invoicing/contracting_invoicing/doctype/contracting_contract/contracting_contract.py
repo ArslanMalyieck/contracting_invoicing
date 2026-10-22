@@ -21,9 +21,32 @@ ADVANCE_BASIS_GROSS = "Gross (VAT inclusive)"
 
 class ContractingContract(Document):
     def validate(self):
+        self._sync_retention()
         self._validate_currency()
         self._validate_percents()
         self._reset_managed_on_new()
+
+    def _sync_retention(self):
+        """Amount mode: the user enters the retention amount and the % is
+        derived from Contract Value. Percentage mode: the amount is kept in
+        sync for reference. Claims always use the % so multi-certificate
+        contracts stay proportional."""
+        cv = flt(self.contract_value)
+        if (self.get("retention_mode") or "Percentage") == "Amount":
+            amount = flt(self.get("retention_amount"))
+            if amount <= 0:
+                frappe.throw(
+                    _(
+                        "Enter a Retention Amount greater than zero, or switch "
+                        "Retention Input back to Percentage."
+                    )
+                )
+            if cv and amount > cv:
+                frappe.throw(_("Retention Amount cannot exceed the Contract Value."))
+            self.retention_percent = flt(amount / cv * 100, 6) if cv else 0
+        else:
+            if cv:
+                self.retention_amount = flt(cv * flt(self.retention_percent) / 100, 2)
 
     def _reset_managed_on_new(self):
         """A contract copied/duplicated from another one (same or different
