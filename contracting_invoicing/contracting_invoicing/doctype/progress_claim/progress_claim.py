@@ -181,9 +181,19 @@ class ProgressClaim(Document):
         return flt(si.net_total if which == "Net Total" else si.grand_total, 2)
 
     def _compute_retention(self, si, settings, contract):
-        retention = flt(
-            flt(contract.retention_percent) / 100 * self._basis(si, settings.retention_basis), 2
-        )
+        if (
+            (contract.get("retention_mode") or "Percentage") == "Amount"
+            and flt(self.cumulative_certified_value) == flt(contract.contract_value)
+            and flt(self.previous_certified_value) == 0
+        ):
+            # Single certificate covering the whole contract: withhold the exact
+            # amount entered on the contract (the 4-decimal % is only a display
+            # derivation and could differ by a few halalas).
+            retention = flt(contract.retention_amount, 2)
+        else:
+            retention = flt(
+                flt(contract.retention_percent) / 100 * self._basis(si, settings.retention_basis), 2
+            )
         if flt(contract.retention_cap_percent):
             cap = flt(
                 flt(contract.retention_cap_percent) / 100 * flt(contract.contract_value), 2

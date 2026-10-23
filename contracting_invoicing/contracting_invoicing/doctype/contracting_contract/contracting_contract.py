@@ -7,6 +7,7 @@ certified counters are owned by the Progress Claim / Retention Release hooks.
 """
 
 import frappe
+from decimal import Decimal, ROUND_DOWN
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import flt, nowdate
@@ -43,8 +44,21 @@ class ContractingContract(Document):
                 )
             if cv and amount > cv:
                 frappe.throw(_("Retention Amount cannot exceed the Contract Value."))
-            self.retention_percent = flt(amount / cv * 100, 6) if cv else 0
+            self.retention_percent = (
+                flt(
+                    (
+                        Decimal(str(amount)) / Decimal(str(cv)) * Decimal(100)
+                    ).quantize(Decimal("0.0001"), rounding=ROUND_DOWN),
+                    4,
+                )
+                if cv
+                else 0
+            )
         else:
+            pct = flt(self.retention_percent)
+            self.retention_percent = flt(
+                Decimal(str(pct)).quantize(Decimal("0.0001"), rounding=ROUND_DOWN), 4
+            )
             if cv:
                 self.retention_amount = flt(cv * flt(self.retention_percent) / 100, 2)
 

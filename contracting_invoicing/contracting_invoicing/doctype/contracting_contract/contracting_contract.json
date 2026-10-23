@@ -189,6 +189,7 @@
   {
    "fieldname": "retention_percent",
    "fieldtype": "Percent",
+   "precision": 4,
    "label": "Retention %",
    "read_only_depends_on": "eval:doc.retention_mode=='Amount'",
    "description": "Withheld by the client from each certificate. VAT is still charged on the full certified value per the ZATCA contracting guideline; retention only affects what is collected now."
