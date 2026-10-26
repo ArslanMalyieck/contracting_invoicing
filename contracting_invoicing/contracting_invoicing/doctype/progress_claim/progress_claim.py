@@ -108,6 +108,7 @@ class ProgressClaim(Document):
         self._compute_net_amount_due(si)
         si.db_set("contracting_claim", self.name)
         si.db_set("contracting_retention_amount", self.retention_amount)
+        si.db_set("contracting_retention_deducted", self.retention_deducted)
         si.db_set("contracting_advance_recovery", self.advance_recovery_gross)
         si.db_set("contracting_net_amount_due", self.net_amount_due)
         self.db_set("retention_amount", self.retention_amount, update_modified=False)
@@ -231,8 +232,21 @@ class ProgressClaim(Document):
                 )
 
         if target <= 0 or not open_advances:
+            retention_deducted = 0.0
+            if (
+                flt(contract.get("retention_deduct_when_no_advance"))
+                and flt(self.retention_amount) > 0
+            ):
+                retention_deducted = flt(self.retention_amount, 2)
+            if retention_deducted > 0:
+                si.apply_discount_on = "Net Total"
+                si.discount_amount = retention_deducted
+                if si.meta.has_field("custom_zatca_discount_reason"):
+                    si.custom_zatca_discount_reason = "Discount"
+                si.calculate_taxes_and_totals()
             self.advance_recovery_gross = 0.0
             self.advance_recovery_net = 0.0
+            self.retention_deducted = retention_deducted
             return
 
         vat_rate = flt(get_advance_vat_rate(contract), 2)
@@ -249,6 +263,7 @@ class ProgressClaim(Document):
         if total_amount <= 0 or recovery_net <= 0:
             self.advance_recovery_gross = 0.0
             self.advance_recovery_net = 0.0
+            self.retention_deducted = 0.0
             return
         si.apply_discount_on = "Net Total"
         si.discount_amount = flt(recovery_net, 2)
@@ -257,6 +272,7 @@ class ProgressClaim(Document):
         si.calculate_taxes_and_totals()
         self.advance_recovery_gross = recovery_gross
         self.advance_recovery_net = recovery_net
+        self.retention_deducted = 0.0
 
     @staticmethod
     def _advance_is_zatca_cleared(payment_entry: str) -> bool:
@@ -283,14 +299,34 @@ class ProgressClaim(Document):
             2,
         )
         base = flt(si.rounded_total) or flt(si.grand_total)
-        self.net_amount_due = flt(
-            base - flt(self.retention_amount) - payment_side, 2
+        retention = (
+            0.0
+            if flt(getattr(self, "retention_deducted", 0))
+            else flt(self.retention_amount)
         )
+        self.net_amount_due = flt(base - retention - payment_side, 2)
 
     def on_cancel(self):
-        if self.sales_invoice and frappe.db.get_value(
+        if not self.sales_invoice or not frappe.db.exists("Sales Invoice", self.sales_invoice):
+            return
+        si_docstatus = frappe.db.get_value(
             "Sales Invoice", self.sales_invoice, "docstatus"
-        ) == 1:
+        )
+        if si_docstatus == 1:
             frappe.throw(
                 _("Cancel the linked Sales Invoice {0} first.").format(self.sales_invoice)
+            )
+        if si_docstatus == 0:
+            # The claim was cancelled before its draft invoice was submitted:
+            # remove that draft so it does not stay orphaned. Submitted invoices
+            # are never touched (the user must cancel them first, which posts the
+            # reversing entries).
+            si_name = self.sales_invoice
+            self.db_set("sales_invoice", None, update_modified=False)
+            self.sales_invoice = None
+            frappe.delete_doc(
+                "Sales Invoice",
+                si_name,
+                force=1,
+                ignore_permissions=True,
             )

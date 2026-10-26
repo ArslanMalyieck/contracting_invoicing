@@ -40,9 +40,20 @@ CUSTOM_FIELDS = {
             "linked Journal Entry. VAT was charged on the full amount, per ZATCA rules.",
         ),
         dict(
+            fieldname="contracting_retention_deducted",
+            fieldtype="Currency",
+            label="Retention Deducted on Invoice",
+            read_only=1,
+            no_copy=1,
+            insert_after="contracting_retention_amount",
+            description="Set when the contract deducts retention from the invoice "
+            "(VAT computed on the net of retention). The retention stays tracked on "
+            "the contract for release.",
+        ),
+        dict(
             fieldname="contracting_column",
             fieldtype="Column Break",
-            insert_after="contracting_retention_amount",
+            insert_after="contracting_retention_deducted",
         ),
         dict(
             fieldname="contracting_advance_recovery",
@@ -77,6 +88,19 @@ CUSTOM_FIELDS = {
             "Tick this if the client keeps the full retention despite the credit - "
             "e.g. damage adjustments that do not reduce works executed.",
         ),
+        dict(
+            fieldname="contracting_prepayment_return",
+            fieldtype="Link",
+            label="Reverses Prepayment Invoice",
+            options="Payment Entry",
+            read_only=1,
+            no_copy=1,
+            insert_after="contracting_skip_retention_reversal",
+            depends_on="eval:doc.is_return",
+            description="For a credit note that reverses a ZATCA prepayment invoice "
+            "(386): the Payment Entry whose 386 is being reversed. It becomes the "
+            "BillingReference of this credit note (381) in the ZATCA XML.",
+        ),
     ],
     "Payment Entry": [
         dict(
@@ -104,7 +128,7 @@ CUSTOM_FIELDS = {
             fieldname="contracting_purpose",
             fieldtype="Select",
             label="Contracting Purpose",
-            options="\nRetention\nRetention Reversal\nDeduction\nAdvance VAT\nAdvance Reclass\nAdvance Recovery\nRecovery VAT",
+            options="\nRetention\nRetention Reversal\nRetention Deduction\nDeduction\nAdvance VAT\nAdvance Reclass\nAdvance Recovery\nRecovery VAT",
             read_only=1,
             no_copy=1,
             insert_after="contracting_section",

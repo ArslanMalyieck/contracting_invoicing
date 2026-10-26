@@ -179,6 +179,13 @@
    "description": "Percentage: enter Retention % directly. Amount: enter the retention amount; the % is derived from Contract Value."
   },
   {
+   "fieldname": "retention_deduct_when_no_advance",
+   "fieldtype": "Check",
+   "label": "Deduct Retention from Invoice when no Advance",
+   "default": "0",
+   "description": "When ON and the claim has NO advance recovery, retention is applied as a document-level allowance: VAT is computed on the value of works NET of retention, and the retention is parked in Retention Receivable (not deducted again from Net Amount Due). When an advance exists, only the advance recovery is applied and retention is held normally."
+  },
+  {
    "fieldname": "retention_amount",
    "fieldtype": "Currency",
    "label": "Retention Amount (Total)",

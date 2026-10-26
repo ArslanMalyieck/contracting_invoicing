@@ -56,7 +56,7 @@ def on_submit(doc, method=None):
     contract = frappe.get_doc("Contracting Contract", claim.contract)
     settings = get_settings(doc.company)
 
-    if flt(claim.retention_amount):
+    if flt(claim.retention_amount) and not flt(doc.get("contracting_retention_deducted")):
         _post_retention_je(doc, claim, contract, settings)
     _post_deduction_jes(doc, claim, settings)
     _post_recovery_reclass_je(doc, claim, contract, settings)
@@ -255,39 +255,56 @@ def _recovery_rows(doc):
 
 
 def _post_recovery_reclass_je(doc, claim, contract, settings):
-    """Move the advance recovery from the Customer Advances liability into
-    revenue. The invoice itself carries the recovery as an item-level allowance
-    (so VAT is computed net of it); this JE keeps the certified revenue intact
-    instead of reducing Sales."""
-    recovery_net = flt(doc.get("discount_amount") or 0, 2)
-    if not recovery_net:
+    """Restore revenue for the invoice's allowance and park the deduction in
+    the right balance-sheet account:
+      - advance recovery  -> Customer Advances (liability)
+      - retention deducted -> Retention Receivable (asset)
+    The invoice itself carries the deduction as a document allowance, so VAT is
+    computed net of it; this JE keeps Sales at the certified value."""
+    total_discount = flt(doc.get("discount_amount") or 0, 2)
+    if not total_discount:
         return
+    retention_deducted = flt(doc.get("contracting_retention_deducted") or 0, 2)
+    recovery_net = flt(total_discount - retention_deducted, 2)
     income_account = (
         doc.items[0].income_account
         or frappe.db.get_value("Company", doc.company, "default_income_account")
     )
+    purpose = "Retention Deduction" if retention_deducted else "Advance Recovery"
     je = _je_base(
         doc,
-        "Advance Recovery",
+        purpose,
         _(
-            "Advance recovery {0} on {1}: the invoice carries it as an allowance "
-            "so VAT is charged net of the advance, while revenue stays at the "
-            "certified value. Debits the Customer Advances liability and credits "
-            "revenue. Managed by Contracting Invoicing - cancels with the invoice."
-        ).format(recovery_net, doc.name),
+            "Deduction {0} on {1}: the invoice carries it as an allowance so VAT "
+            "is charged net of it, while revenue stays at the certified value. "
+            "Advance {2} clears Customer Advances; retention {3} moves to "
+            "Retention Receivable. Managed by Contracting Invoicing - cancels "
+            "with the invoice."
+        ).format(total_discount, doc.name, recovery_net, retention_deducted),
     )
-    je.append(
-        "accounts",
-        {
-            "account": settings.advance_liability_account,
-            "debit_in_account_currency": recovery_net,
-        },
-    )
+    if recovery_net:
+        je.append(
+            "accounts",
+            {
+                "account": settings.advance_liability_account,
+                "debit_in_account_currency": recovery_net,
+            },
+        )
+    if retention_deducted:
+        je.append(
+            "accounts",
+            {
+                "account": settings.retention_receivable_account,
+                "party_type": "Customer",
+                "party": doc.customer,
+                "debit_in_account_currency": retention_deducted,
+            },
+        )
     je.append(
         "accounts",
         {
             "account": income_account,
-            "credit_in_account_currency": recovery_net,
+            "credit_in_account_currency": total_discount,
         },
     )
     je.flags.ignore_permissions = True
