@@ -461,3 +461,81 @@ def _cancel_linked_contracting_jes(doc):
             je.cancel()
         finally:
             frappe.flags.contracting_system_cancel = False
+
+
+def on_trash(doc, method=None):
+    """Deleting a DRAFT contracting invoice cascades to its Progress Claim and
+    the documents created from it, so links don't block the delete:
+      - Retention Releases referencing the invoice (cancelled + deleted)
+      - Contracting Journal Entries linked to the invoice (cancelled + deleted)
+      - The Progress Claim itself (cancelled + deleted)
+    Submitted invoices are blocked by Frappe before this hook; reverse those
+    with credit notes (ZATCA), do not delete them.
+    """
+    if frappe.flags.get("contracting_claim_cancel_delete_si"):
+        return
+    if doc.docstatus != 0 or not doc.get("contracting_claim"):
+        return
+    claim_name = doc.contracting_claim
+    if not frappe.db.exists("Progress Claim", claim_name):
+        return
+    claim = frappe.get_doc("Progress Claim", claim_name)
+    frappe.flags.contracting_invoice_delete = True
+    try:
+        # 1) Retention Releases referencing this invoice
+        for rr_name in sorted(
+            set(
+                frappe.get_all(
+                    "Retention Release Entry",
+                    filters={"sales_invoice": doc.name},
+                    pluck="parent",
+                    limit_page_length=0,
+                )
+            )
+        ):
+            rr = frappe.get_doc("Retention Release", rr_name)
+            rr.flags.ignore_permissions = True
+            if rr.docstatus == 1:
+                rr.cancel()
+            frappe.delete_doc(
+                "Retention Release", rr_name, force=1, ignore_permissions=True
+            )
+
+        # 2) Contracting JEs linked to this invoice
+        for je_name in frappe.get_all(
+            "Journal Entry",
+            filters={
+                "contracting_reference_doctype": "Sales Invoice",
+                "contracting_reference_name": doc.name,
+            },
+            pluck="name",
+            limit_page_length=0,
+        ):
+            je = frappe.get_doc("Journal Entry", je_name)
+            frappe.flags.contracting_system_cancel = True
+            try:
+                if je.docstatus == 1:
+                    je.cancel()
+                frappe.delete_doc(
+                    "Journal Entry", je_name, force=1, ignore_permissions=True
+                )
+            finally:
+                frappe.flags.contracting_system_cancel = False
+
+        # 3) Clear the links before deleting the claim
+        doc.db_set("contracting_claim", None, update_modified=False)
+        doc.contracting_claim = None
+        if claim.get("sales_invoice"):
+            claim.db_set("sales_invoice", None, update_modified=False)
+            claim.sales_invoice = None
+
+        # 4) Cancel + delete the claim
+        claim.flags.ignore_permissions = True
+        if claim.docstatus == 1:
+            claim.cancel()
+        if claim.docstatus in (0, 2):
+            frappe.delete_doc(
+                "Progress Claim", claim.name, force=1, ignore_permissions=True
+            )
+    finally:
+        frappe.flags.contracting_invoice_delete = False

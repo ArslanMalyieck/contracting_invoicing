@@ -28,6 +28,7 @@ doc_events = {
         "on_submit": "contracting_invoicing.overrides.sales_invoice.on_submit",
         "before_cancel": "contracting_invoicing.overrides.sales_invoice.before_cancel",
         "on_cancel": "contracting_invoicing.overrides.sales_invoice.on_cancel",
+        "on_trash": "contracting_invoicing.overrides.sales_invoice.on_trash",
     },
     "Payment Entry": {
         "validate": "contracting_invoicing.overrides.payment_entry.validate",

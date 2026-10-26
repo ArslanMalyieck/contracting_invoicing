@@ -324,9 +324,17 @@ class ProgressClaim(Document):
             si_name = self.sales_invoice
             self.db_set("sales_invoice", None, update_modified=False)
             self.sales_invoice = None
-            frappe.delete_doc(
-                "Sales Invoice",
-                si_name,
-                force=1,
-                ignore_permissions=True,
-            )
+            if frappe.flags.get("contracting_invoice_delete"):
+                # The invoice is already being deleted by its own on_trash
+                # cascade; do not re-enter deletion.
+                return
+            frappe.flags.contracting_claim_cancel_delete_si = True
+            try:
+                frappe.delete_doc(
+                    "Sales Invoice",
+                    si_name,
+                    force=1,
+                    ignore_permissions=True,
+                )
+            finally:
+                frappe.flags.contracting_claim_cancel_delete_si = False
